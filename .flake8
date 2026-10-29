@@ -1,0 +1,2 @@
+[flake8]
+exclude = .venv,data,docs,.git,__pycache__,.mypy_cache
