@@ -1,0 +1,20 @@
+[project]
+name = "RAG-against-the-machine"
+version = "1.0.0"
+requires-python = ">=3.10"
+description = ""
+authors = [
+    {name = "scamlett"}
+]
+dependencies = [
+    "mypy",
+    "flake8",
+    "pydantic",
+    "fire",
+    "tqdm",
+    "pytest"
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
