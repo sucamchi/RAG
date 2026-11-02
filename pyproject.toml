@@ -12,7 +12,10 @@ dependencies = [
     "pydantic",
     "fire",
     "tqdm",
-    "pytest"
+    "pytest",
+    "torch",
+    "transformers",
+    "accelerate"
 ]
 
 [build-system]
