@@ -198,10 +198,9 @@ pickle.dump(index, f)      # object -> bytes in the file
 index = pickle.load(f)     # bytes in the file -> object
 ```
 
-Why it fits here:
+Benefits:
 
-- **Short code:** two lines, with no manual conversion. JSON has no tuples,
-  so a JSON version had to rebuild every `(chunk_id, tf)` pair by hand.
+- **Short code:** two lines, with no manual JSON conversion.
 - **Exact round trip:** types are kept, so a tuple comes back as a tuple.
 - **Standard library:** no extra dependency.
 
@@ -218,15 +217,15 @@ Trade-offs:
 
 ## Resources
 
-- en.subject.pdf provided by 42
+- [en.subject.pdf provided by 42](docs/en.subject.pdf)
 - [uv](https://docs.astral.sh/uv/)
 - [Writing your pyproject.toml](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/)
-- [Qwen3 model](https://huggingface.co/Qwen/Qwen3-0.6B).
-- [Hugging Face transformers: text generation](https://huggingface.co/docs/transformers/main_classes/text_generation).
-- [Python Fire CLI](https://github.com/google/python-fire/blob/master/docs/guide.md).
+- [Qwen3 model](https://huggingface.co/Qwen/Qwen3-0.6B)
+- [Hugging Face transformers: text generation](https://huggingface.co/docs/transformers/main_classes/text_generation)
+- [Python Fire CLI](https://github.com/google/python-fire/blob/master/docs/guide.md)
 - [tqdm](https://github.com/tqdm/tqdm)
 - [BM25 Okapi](https://medium.com/@readwith_emma/understanding-okapi-bm25-document-ranking-algorithm-70d81adab001)
 - [BM25 for developers](https://medium.com/@kimdoil1211/bm25-for-developers-a-guide-to-smarter-keyword-search-e6d83e8c8c8c)
 - [Python pickle](https://docs.python.org/3/library/pickle.html)
 
-AI was used in a responsible manner to help understand new concepts, draft a step-by-step plan, assist in BM25 algorithm, testing and edge case handling.
+AI was used in a responsible manner to explain new concepts, draft a step-by-step plan, assist in BM25 algorithm, testing and edge case handling.
