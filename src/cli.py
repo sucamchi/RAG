@@ -15,7 +15,7 @@ PROCESSED = "data/processed"
 SEARCH_OUT = "data/output/search_results"
 ANSWER_OUT = "data/output/search_results_and_answer"
 MAX_CHUNK = 2000
-# The moulinette counts a source as found above this overlap score. (Ch VII)
+# Moulinette counts a source as found above this overlap score. (Chapter VII)
 MIN_IOU = 0.05
 
 
@@ -63,7 +63,6 @@ def index(max_chunk_size: int = MAX_CHUNK, raw_dir: str = RAW,
 
 def search(query: str, k: int = 10, index_dir: str = PROCESSED) -> None:
     """Print the top-k sources for one query."""
-    # Fire turns `search 42` into the int 42, so convert back to text.
     sources = Index.load(index_dir).search(str(query), k)
     if not sources:
         print("No matching sources found.")
@@ -103,7 +102,6 @@ def answer(query: str, k: int = 10, index_dir: str = PROCESSED) -> None:
 def answer_dataset(student_search_results_path: str,
                    save_directory: str = ANSWER_OUT) -> None:
     """Answer every question of a search results file."""
-    # Imported here so search never loads torch.
     from src.generator import Generator
 
     with open(student_search_results_path, encoding="utf-8") as f:
