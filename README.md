@@ -20,19 +20,20 @@ In this project, we hand-craft the RAG pipeline for a pre-provided vLLM repo.
 
 ## Instructions
 
-Requirements: Python 3.10+, [uv](https://docs.astral.sh/uv/).
+Requirements: Python 3.10+ and [uv](https://docs.astral.sh/uv/).
 
 ```bash
 make install        # uv sync
 ```
 
-Place the data (not committed, see `.gitignore`):
+Place the data:
 
 ```
 data/raw/vllm-0.10.1/                    the vLLM repository to index
 data/datasets/AnsweredQuestions/         datasets with reference sources
 data/datasets/UnansweredQuestions/       datasets with questions only
 ```
+
 
 ### CLI Commands
 
@@ -47,15 +48,89 @@ data/datasets/UnansweredQuestions/       datasets with questions only
 
 ## Example usage
 
+```bash
+# Step 1: Chunk and index the repo
+uv run python -m src index --max_chunk_size 2000
+
+# Step 2: Search a query and print the top results
+uv run python -m src search "How to configure the OpenAI server?" --k 5
+
+# Step 3: Search dataset, write results to file
+uv run python -m src search_dataset \
+    --dataset_path data/datasets/UnansweredQuestions/dataset_docs_public.json \
+    --k 10 --save_directory data/output/search_results/UnansweredQuestions
+
+# Step 4: Evaluate the recall@k with moulinette
+./moulinette evaluate_student_search_results \
+    data/output/search_results/UnansweredQuestions/dataset_docs_public.json \
+    data/datasets/AnsweredQuestions/dataset_docs_public.json \
+    --k 10 --max_context_length 2000
+
+# Step 5: Answer dataset questions and write results
+uv run python -m src answer_dataset \
+    --student_search_results_path data/output/search_results/UnansweredQuestions/dataset_docs_public.json \
+    --save_directory data/output/search_results_and_answer/UnansweredQuestions
+```
+
 ## System architecture
+
+Indexing runs once. Retrieval and generation run for every question.
+
+```
+INDEXING
+data/raw/ --> chunker --> tokenizer --> BM25 index --> data/processed/index.pkl
+  (files)     (spans)     (words)      (postings)
+
+QUERYING
+question --> tokenizer --> BM25 search --> top-k sources --> read text --> Qwen3-0.6B --> answer
+                          (index.pkl)    (path, start, end)  (from files)
+```
+
+### Components
+
+| File | Role |
+|---|---|
+| `src/chunker.py` | Cuts one file's text into `(start, end)` character ranges of at most `max_chunk_size`. Python and Markdown are split differently. |
+| `src/bm25.py` | The tokenizer, and the BM25 inverted index that scores and ranks chunks for a query. |
+| `src/indexer.py` | The `Index` class: walks the corpus, chunks each file, feeds each chunk's words (plus its file path words) to BM25, saves and loads the pickle, and turns ranked chunk numbers into sources. |
+| `src/models.py` | Pydantic models for the datasets, sources, search results and answers, so inputs and outputs follow the subject's format. |
+| `src/generator.py` | Loads Qwen3-0.6B and generates an answer from a question and a context string. |
+| `src/cli.py` | The commands (`index`, `search`, `search_dataset`, `answer`, `answer_dataset`, `evaluate`), the recall@k calculation, and reading the text of retrieved sources. |
+| `src/__main__.py` | Entry point: exposes the commands with Python Fire and prints errors as a short `error:` message. |
+
+### How the pieces interact
+
+1. **Indexing:** `index` calls `Index.build`. For each `.py`, `.md` and
+   `.txt` file, the chunker returns character ranges and BM25 stores the
+   words of each range. The index keeps only the location of each chunk
+   (file path, start, end), not its text, and is saved with pickle.
+2. **Retrieval:** `search` and `search_dataset` load the index and call
+   `Index.search`. BM25 ranks the chunks and the index returns them as
+   `MinimalSource` objects: a file path with a character range.
+3. **Augmentation:** `answer` and `answer_dataset` use `read_context` to
+   read the text of each retrieved range from its file and join them into
+   one context string.
+4. **Generation:** `Generator.answer` puts that context and the question in
+   a prompt that tells the model to answer only from the context, and
+   Qwen3-0.6B writes the answer.
+5. **Output:** results are validated and saved with the Pydantic models:
+   `StudentSearchResults` for search, and
+   `StudentSearchResultsAndAnswer` for answers. `evaluate` compares saved
+   search results with a ground-truth dataset and prints recall@k.
+
+Retrieval works only with locations and never loads the model, so the
+search commands stay fast. `torch` and `transformers` are imported only
+when an `answer` command runs.
 
 ## Chunking strategy
 
 Each file is first split into pieces at natural boundaries, then
 consecutive pieces are packed together while they fit in `max_chunk_size`
-(2000 characters as defined in subject).
+(2000 characters as defined in subject). A piece longer than
+`max_chunk_size` is cut just after a newline, or in the middle of a line if
+a single line is longer than the limit, so no chunk is ever too big.
 
-- **Python**: a piece starts at every `def`, `async def`, `class` or
+- **Python**: a piece starts at every `def`, `class` or
   decorator line, at any indentation, so methods are separate pieces. A
   `def` directly under its decorator stays with the decorator.
 - **Markdown and text**: a piece starts at every heading (`#` at the start
@@ -122,7 +197,6 @@ never. Chunk B mentions each once. Chunk A gets a high score for
 `scheduler` only; chunk B gets two smaller scores that add up. Whichever
 total is higher ranks first, and the rarer word (higher `idf`) pulls harder.
 
-
 ## Performance analysis
 
 ### Speed
@@ -151,11 +225,12 @@ What the numbers say:
 - The right chunk is usually found but not always ranked first: code goes
   from 0.50 at k=1 to 0.81 at k=5. BM25 only counts words, so a chunk that
   repeats the question's words can outrank the one that answers it.
-- Code does well because Python is cut at `def` and `class`, so a chunk is
-  usually one function, and the file path words are added to every chunk.
-- Typical misses are broad questions ("What hardware platforms does vLLM
-  support?"), where several documents use the same words and a more
-  specific page ranks above the overview.
+- Code probably does well because Python is cut at `def` and `class`, so a
+  chunk is usually one function, and the file path words are added to every
+  chunk.
+- Broad questions are the typical misses ("What hardware platforms does
+  vLLM support?" returned a quantization hardware page first), because
+  several documents use the same words.
 
 ### Effect of the chunk size
 
@@ -213,7 +288,21 @@ Trade-offs:
   `BM25` change, re-run `index` (it takes a few seconds).
 - **Not readable** by humans, unlike JSON.
 
+### Generator only loads when needed
+
+The Generator is only imported and initialized when an `answer` command runs, keeping the other commands fast.
+
 ## Challenges faced
+
+- **Decorators split from their function:** a `@decorator` line started a
+  new piece, so it ended up away from its `def`. The splitter now keeps a
+  decorator together with the definition under it.
+- **Character indexes shifting:** reading files in text mode turns `\r\n`
+  into `\n`, which moves every later index by one. Files are read with
+  `newline=""` so the ranges match the original characters.
+- **Edge cases:** BM25 and the CLI handle an empty index, empty queries,
+  unknown words and missing files.
+- **Understanding pickle:** learned how serialization allows reuse of the index.
 
 ## Resources
 
