@@ -7,17 +7,25 @@ authors = [
     {name = "scamlett"}
 ]
 dependencies = [
-    "mypy",
-    "flake8",
     "pydantic",
     "fire",
     "tqdm",
-    "pytest",
     "torch",
     "transformers",
     "accelerate"
 ]
 
+[dependency-groups]
+dev = [
+    "flake8",
+    "mypy",
+    "pytest"
+]
+
 [build-system]
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

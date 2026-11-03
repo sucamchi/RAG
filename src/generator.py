@@ -2,9 +2,11 @@ from typing import Any
 
 
 class Generator:
+    """Loads the Qwen model and generates answers from context."""
     MODEL = "Qwen/Qwen3-0.6B"
 
     def __init__(self) -> None:
+        """Initialize the model and tokenizer."""
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -16,6 +18,7 @@ class Generator:
         self.model.eval()
 
     def generate(self, question: str, context: str, max_new: int = 256) -> str:
+        """Generate the answer from context."""
         msgs = [
             {"role": "system", "content": "Answer only from the context."},
             {"role": "user",

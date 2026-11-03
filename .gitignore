@@ -6,3 +6,4 @@ data/raw
 moulinette
 .pytest_cache/
 *.egg-info/
+tests/
