@@ -2,10 +2,6 @@
 name = "RAG-against-the-machine"
 version = "1.0.0"
 requires-python = ">=3.10"
-description = ""
-authors = [
-    {name = "scamlett"}
-]
 dependencies = [
     "pydantic",
     "fire",
@@ -19,7 +15,8 @@ dependencies = [
 dev = [
     "flake8",
     "mypy",
-    "pytest"
+    "pytest",
+    "types-tqdm"
 ]
 
 [build-system]

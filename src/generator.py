@@ -17,7 +17,7 @@ class Generator:
         )
         self.model.eval()
 
-    def generate(self, question: str, context: str, max_new: int = 256) -> str:
+    def answer(self, question: str, context: str, max_new: int = 256) -> str:
         """Generate the answer from context."""
         msgs = [
             {"role": "system", "content": "Answer only from the context."},

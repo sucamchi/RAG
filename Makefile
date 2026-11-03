@@ -1,4 +1,5 @@
-# args passed to `python -m src`, e.g. make run ARGS='search "lora" --k 5'
+# args passed to python -m src, e.g. make run ARGS='search "lora" --k 5'
+# ?= defaults to index unless ARGS given
 ARGS ?= index
 
 install:
