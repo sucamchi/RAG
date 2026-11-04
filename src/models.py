@@ -1,3 +1,5 @@
+"""RAG models defined by the subject"""
+
 from pydantic import BaseModel, Field
 import uuid
 from typing import List

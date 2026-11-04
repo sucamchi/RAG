@@ -2,7 +2,6 @@
 import os
 import time
 from typing import Any
-
 from tqdm import tqdm
 
 from src.indexer import Index
