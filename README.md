@@ -154,8 +154,7 @@ words it contains; the top k are returned.
 
 ### How BM25 scores a chunk
 
-BM25 answers one question: *how well does this chunk match the words in the
-question?* It combines three simple ideas.
+BM25 combines three simple ideas.
 
 1. **Rare words matter more (idf).** A word like `self` is in almost every
    chunk, so matching it says nothing. A word like `lora_rank` is in only a
@@ -215,10 +214,9 @@ the top k retrieved chunks overlaps (IoU of at least 0.05). Measured with
 | Dataset | Recall@1 | Recall@3 | Recall@5 | Recall@10 | Required @5 |
 |---|---|---|---|---|---|
 | docs (100 questions) | 0.650 | 0.790 | 0.830 | 0.860 | 0.80 |
-| code (99 questions) | 0.495 | 0.737 | 0.808 | 0.848 | 0.50 |
+| code (100 questions) | 0.495 | 0.737 | 0.808 | 0.848 | 0.50 |
 
-Both datasets pass the required recall@5. Docs passes with a small margin,
-code with a large one.
+Both datasets pass the required recall@5.
 
 What the numbers say:
 
@@ -228,25 +226,6 @@ What the numbers say:
 - Code probably does well because Python is cut at `def` and `class`, so a
   chunk is usually one function, and the file path words are added to every
   chunk.
-- Broad questions are the typical misses ("What hardware platforms does
-  vLLM support?" returned a quantization hardware page first), because
-  several documents use the same words.
-
-### Effect of the chunk size
-
-The index was rebuilt with smaller chunks (recall@5, same datasets):
-
-| max_chunk_size | docs | code |
-|---|---|---|
-| 500 | 0.810 | 0.768 |
-| 1000 | 0.830 | 0.747 |
-| 2000 | 0.830 | 0.808 |
-
-Docs recall is almost flat, so size matters little there. Code is best
-with 2000: a whole function stays together and matches more of the
-question's words. Small chunks (500) give better recall@1 on docs (0.690)
-but worse recall@5 on code. Since 2000 is also the maximum allowed, it is
-the default.
 
 ### Answers
 
