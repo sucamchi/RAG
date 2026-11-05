@@ -1,4 +1,6 @@
 from typing import Any
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 class Generator:
@@ -7,9 +9,6 @@ class Generator:
 
     def __init__(self) -> None:
         """Initialize the model and tokenizer."""
-        import torch
-        from transformers import AutoModelForCausalLM, AutoTokenizer
-
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.tokenizer = AutoTokenizer.from_pretrained(self.MODEL)
         dtype = "auto" if self.device == "cuda" else torch.float32
@@ -30,8 +29,10 @@ class Generator:
             enable_thinking=False
         )
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
-        out = self.model.generate(**inputs, max_new_tokens=max_new,
-                                  do_sample=False)
+        # torch.inference_mode() skips autograd and saves memory
+        with torch.inference_mode():
+            out = self.model.generate(**inputs, max_new_tokens=max_new,
+                                      do_sample=False)
         new = out[0][inputs["input_ids"].shape[1]:]  # drop the echoed prompt
         text = self.tokenizer.decode(new, skip_special_tokens=True)
         return str(text).strip()

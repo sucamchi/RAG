@@ -26,6 +26,13 @@ Requirements: Python 3.10+ and [uv](https://docs.astral.sh/uv/).
 make install        # uv sync
 ```
 
+If you are on a 42 cluster machine, set `HF_HOME` to a folder in `sgoinfre` before the
+first `answer`, so the ~1.5 GB model download does not fill your home partition:
+
+```bash
+export HF_HOME=/sgoinfre/students/$USER/.cache/huggingface
+```
+
 Place the data:
 
 ```
@@ -227,12 +234,26 @@ What the numbers say:
   chunk is usually one function, and the file path words are added to every
   chunk.
 
-### Answers
 
-The answers come from Qwen3-0.6B, which reads the retrieved chunks. They
-are short and usually quote the right identifier or command when the right
-chunk is retrieved. When retrieval misses, the small model answers from the
-wrong context, so answer quality follows retrieval quality.
+## 42 cluster PC performance
+
+The project was developed on a laptop with an NVIDIA RTX 4060. The 42
+cluster computers (Intel i5-10600, 6 cores, 7.6 GB of RAM) have no GPU.
+Full measurements are in [docs/42performance.md](docs/42performance.md).
+
+Indexing, search and recall@k behave the same on both machines. BM25
+only counts words, so it is fast on any CPU and gives identical results.
+
+Generation is the one part that changes. Without a GPU, Qwen3-0.6B runs
+on the CPU:
+
+| | Cluster CPU |
+|---|---|
+| Model load | ~30 s |
+| One answer | ~20 to 40 s |
+| Memory used | ~4.4 GB |
+
+Most of that time goes into reading the ~4000 token context.
 
 ## Design decisions
 
@@ -296,4 +317,4 @@ The Generator is only imported and initialized when an `answer` command runs, ke
 - [BM25 for developers](https://medium.com/@kimdoil1211/bm25-for-developers-a-guide-to-smarter-keyword-search-e6d83e8c8c8c)
 - [Python pickle](https://docs.python.org/3/library/pickle.html)
 
-AI was used in a responsible manner to explain new concepts, draft a step-by-step plan, assist in BM25 algorithm, testing and edge case handling.
+AI was used in a responsible manner to explain new concepts, draft a step-by-step plan, assist in BM25 algorithm, performance benchmarking, testing and edge case handling.

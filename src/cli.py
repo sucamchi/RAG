@@ -4,7 +4,7 @@ import time
 from typing import Any
 from tqdm import tqdm
 
-from src.indexer import Index
+from src.indexer import Index, read_file
 from src.models import (AnsweredQuestion, MinimalAnswer, MinimalSearchResults,
                         MinimalSource, RagDataset, StudentSearchResults,
                         StudentSearchResultsAndAnswer)
@@ -35,11 +35,10 @@ def print_sources(sources: list[MinimalSource]) -> None:
 
 
 def read_context(sources: list[MinimalSource]) -> str:
-    """Join the text of every source, read from its character range."""
+    """Join the text of every source. Uses the same reader as indexing."""
     parts = []
     for source in sources:
-        with open(source.file_path, encoding="utf-8", newline="") as f:
-            text = f.read()
+        text = read_file(source.file_path)
         parts.append(text[source.first_character_index:
                           source.last_character_index])
     return "\n\n".join(parts)
