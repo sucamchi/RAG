@@ -19,8 +19,17 @@ class Generator:
 
     def answer(self, question: str, context: str, max_new: int = 256) -> str:
         """Generate the answer from context."""
+        system = (
+            "You are a vLLM documentation assistant. Answer the question "
+            "using only the retrieved context. The first passages are the "
+            "most relevant, ignore irrelevant ones. Start with the direct "
+            "answer, then one or two sentences of explanation. Only name "
+            "commands, flags and values that appear in the context. If the "
+            "context lists several relevant items, include them all."
+            "If the context does not answer the question, say so."
+        )
         msgs = [
-            {"role": "system", "content": "Answer only from the context."},
+            {"role": "system", "content": system},
             {"role": "user",
              "content": f"Context:\n{context}\n\nQuestion: {question}"},
         ]

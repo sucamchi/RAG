@@ -83,6 +83,8 @@ class BM25:
 
     def search(self, query: str, k: int) -> list[int]:
         """Return the k best chunks for the query."""
+        k = int(k)
+        # If Fire passes --k as a string; int(k) raises ValueError.
         if not self.lengths:
             return []
         total = len(self.lengths)
