@@ -214,7 +214,7 @@ the top k retrieved chunks overlaps (IoU of at least 0.05). Measured with
 | Dataset | Recall@1 | Recall@3 | Recall@5 | Recall@10 | Required @5 |
 |---|---|---|---|---|---|
 | docs (100 questions) | 0.650 | 0.790 | 0.830 | 0.860 | 0.80 |
-| code (100 questions) | 0.495 | 0.737 | 0.808 | 0.848 | 0.50 |
+| code (99 questions) | 0.495 | 0.737 | 0.808 | 0.848 | 0.50 |
 
 Both datasets pass the required recall@5.
 

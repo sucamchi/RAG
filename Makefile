@@ -23,4 +23,4 @@ lint:
 	uv run mypy . --warn-return-any --warn-unused-ignores \
 		--ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
-.PHONY: install run debug test clean lint lint-strict
+.PHONY: install run debug test clean lint

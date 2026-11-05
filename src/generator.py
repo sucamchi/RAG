@@ -12,8 +12,9 @@ class Generator:
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.tokenizer = AutoTokenizer.from_pretrained(self.MODEL)
+        dtype = "auto" if self.device == "cuda" else torch.float32
         self.model: Any = AutoModelForCausalLM.from_pretrained(
-            self.MODEL, torch_dtype="auto", device_map=self.device
+            self.MODEL, dtype=dtype, device_map=self.device
         )
         self.model.eval()
 
