@@ -292,6 +292,19 @@ Trade-offs:
 
 The Generator is only imported and initialized when an `answer` command runs, keeping the other commands fast.
 
+### Generation without autograd
+
+Autograd is the part of PyTorch that records every calculation.
+This is how a model learns during training: it adjusts weights to reduce errors.
+
+This project never trains the model, it only generates answers, so the
+record is never used. `Generator.answer` runs generation inside
+`torch.inference_mode()`, which tells PyTorch to skip the recording. On
+the cluster CPU this saved about 3 seconds per answer.
+
+It is used together with `model.eval()`, which switches off training-only behaviour.
+Both are wanted when only generating.
+
 ## Challenges faced
 
 - **Decorators split from their function:** a `@decorator` line started a
