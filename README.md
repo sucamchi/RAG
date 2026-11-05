@@ -208,8 +208,9 @@ total is higher ranks first, and the rarer word (higher `idf`) pulls harder.
 ### Speed
 
 Indexing the whole vLLM corpus (about 2000 files, 13,000 chunks) takes
-around 3 seconds, far below the 5 minute limit. The index is a 9 MB pickle
-file, and a single search takes a fraction of a second once it is loaded.
+about 3 seconds, far below the 5 minute limit. The index is a 9 MB pickle file.
+A single search command takes 0.38 to 0.44 seconds. 
+With the index already loaded, one query takes about 3 ms, or about 336 queries per second.
 
 ### Retrieval quality
 
@@ -237,23 +238,30 @@ What the numbers say:
 
 ## 42 cluster PC performance
 
-The project was developed on a laptop with an NVIDIA RTX 4060. The 42
-cluster computers (Intel i5-10600, 6 cores, 7.6 GB of RAM) have no GPU.
-Full measurements are in [docs/42performance.md](docs/42performance.md).
+The project was developed on a laptop with an Intel Core i7-13620H
+(10 cores / 16 threads), 16 GB of RAM and an NVIDIA RTX 4060 Laptop GPU
+with 8 GB. The 42 cluster computers have an Intel Core i5-10600
+(6 cores / 12 threads), 7.6 GB of RAM and no GPU. Full measurements,
+method and per-question results are in
+[docs/42performance.md](docs/42performance.md).
 
-Indexing, search and recall@k behave the same on both machines. BM25
-only counts words, so it is fast on any CPU and gives identical results.
+Indexing, search and recall@k are CPU-only, so they behave the same on
+both machines. Generation is the part the GPU changes:
 
-Generation is the one part that changes. Without a GPU, Qwen3-0.6B runs
-on the CPU:
+| | Laptop GPU | 42 cluster CPU |
+|---|---|---|
+| Indexing | 2.5 to 2.7 s | 4 to 9 s |
+| Search, one query | 0.38 to 0.44 s | under 0.5 s |
+| Model load | 5.2 s | ~30 s |
+| One answer, ~4k context | 0.67 to 0.96 s | 22 to 40.5 s |
+| 100 answers | 123 s | ~50 min |
+| Memory while answering | 1.7 GB GPU + 2.4 GB RAM | ~4.4 GB RAM |
 
-| | Cluster CPU |
-|---|---|
-| Model load | ~30 s |
-| One answer | ~20 to 40 s |
-| Memory used | ~4.4 GB |
-
-Most of that time goes into reading the ~4000 token context.
+One answer falls from 22 to 40.5 seconds on the cluster CPU to 0.67 to
+0.96 seconds on the laptop GPU, ~30-40 times faster. Most of the
+cluster time goes into reading the ~4000 token context. The laptop model
+load is also faster (5.2 s against ~30 s), though that gap is mostly disk
+and startup, not the GPU.
 
 ## Design decisions
 
