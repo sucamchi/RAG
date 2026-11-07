@@ -74,7 +74,7 @@ for every question.
 Indexing:
 
 1. `index` walks `data/raw/` and keeps `.py`, `.md` and `.txt` files.
-2. Each file is read with `open(..., newline="")`, so Windows line endings
+2. Each file is read with `open(..., newline="")`, so line endings
    stay two characters and every character index matches the original file.
 3. `src/chunker.py` splits the file into pieces at natural boundaries, cuts
    pieces longer than 2000 characters, and packs small consecutive pieces
@@ -460,7 +460,6 @@ uv sync
 
 # quality
 make lint
-uv run pytest
 
 # build the index (2s here)
 uv run python -m src index --max_chunk_size 2000
@@ -551,3 +550,12 @@ Answer these without looking. If you can, you are ready.
 8. What happens when `k=0`, and why is there no crash?
 9. Why is docs recall higher than code recall?
 10. What would you change first if you had another day?
+
+### Pickle in simple terms
+
+Pickle is Python's way of saving an object so it can be loaded again later.
+It turns the `Index` object into binary data and writes it to a file.
+That object contains chunk locations and the BM25 search data.
+So it does not contain a separate copy of the full text.
+Later, `pickle.load` rebuilds the object so searching can start without
+rebuilding the index. Writing and reading binary is fast and avoids parsing JSON.
