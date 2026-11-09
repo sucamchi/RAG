@@ -327,7 +327,7 @@ Both are wanted when only generating.
 
 ## Resources
 
-- [en.subject.pdf provided by 42](docs/en.subject.pdf)
+- en.subject.pdf provided by 42
 - [uv](https://docs.astral.sh/uv/)
 - [Writing your pyproject.toml](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/)
 - [Qwen3 model](https://huggingface.co/Qwen/Qwen3-0.6B)

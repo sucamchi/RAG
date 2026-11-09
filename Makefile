@@ -11,9 +11,6 @@ run:
 debug:
 	uv run python -m pdb -m src $(ARGS)
 
-test:
-	uv run pytest
-
 clean:
 	rm -rf .mypy_cache .pytest_cache
 	find . -name __pycache__ -not -path "./.venv/*" -prune -exec rm -rf {} +
